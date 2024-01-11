@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True, static_url_path = '/')
@@ -37,6 +38,10 @@ def create_app(test_config=None):
     app.register_blueprint(jump.bp)
 
     app.static_folder = 'public'
-
+    # Tell the app that it is behind a proxy because an Nginx 
+    # reverse proxy is gonna be used
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+    )
     CORS(app)
     return app
